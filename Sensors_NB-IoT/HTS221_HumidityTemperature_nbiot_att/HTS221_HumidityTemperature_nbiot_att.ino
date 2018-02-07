@@ -1,13 +1,3 @@
-/***************************************************************************
-	This is a library for the HTS221 Humidity Temperature Sensor
-		Originally written by speirano for SmartEverything
-		Adjusted by Gregory Knauff of SODAQ for the NB-IoT shield
-	Adjusted by Jan van Loenen to work on Sodaq Explorer and Arduino Leonardo
-
-	Standard I2C-address is 0x5F.
-
-***************************************************************************/
-
 /*****
  * ATT Settings
  *
@@ -41,10 +31,12 @@
 
 #include <Arduino.h>
 #include <Wire.h>
- // #include <SoftwareSerial.h> // Uno
 #include <Sodaq_wdt.h>
 #include <Sodaq_nbIOT.h>
-#include "Sodaq_HTS221.h"
+#include <Sodaq_HTS221.h>
+#if defined(ARDUINO_AVR_UNO)
+  #include <SoftwareSerial.h> // Uno
+#endif
 
 #if defined(ARDUINO_AVR_LEONARDO)
 #define DEBUG_STREAM Serial 
@@ -68,7 +60,8 @@
 #error "Please select a Sodaq ExpLoRer, Arduino Leonardo or add your board."
 #endif
 
- Sodaq_nbIOT nbiot;
+Sodaq_nbIOT nbiot;
+Sodaq_HTS221 humiditySensor;
 
  void setup()
  {
@@ -76,10 +69,12 @@
      // Wait for serial monitor for 10 seconds
    }
 
+   Wire.begin();
+
    DEBUG_STREAM.begin(9600);
    MODEM_STREAM.begin(nbiot.getDefaultBaudrate());
 
-	 DEBUG_STREAM.println("\r\nSODAQ HTS221 Arduino Example\r\n");
+	 DEBUG_STREAM.println("\r\nSODAQ HTS221 Temperature AllThingsTalk Example\r\n");
 
 	 nbiot.init(MODEM_STREAM, 7);
 	 nbiot.setDiag(DEBUG_STREAM);
@@ -94,11 +89,13 @@
 		 return;
 	 }
 
-	 if (hts221.begin() == false)
-	 {
-		 DEBUG_STREAM.println("Error while retrieving WHO_AM_I byte...");
-		 while (1);
-	 }
+	 if (humiditySensor.init()) {
+        DEBUG_STREAM.println("Temperature + humidity sensor initialized.");
+        humiditySensor.enableSensor();
+    }
+    else {
+        DEBUG_STREAM.println("Temperature + humidity initialization failed!");
+    }
  }
 
 
@@ -110,12 +107,12 @@
 	 int16_t temperature;
 	 int16_t humidity;
 
-	 temperature = hts221.readTemperature() * 100;
+	 temperature = humiditySensor.readTemperature() * 100;
 	 DEBUG_STREAM.println(temperature);
 	 message[cursor++] = temperature >> 8;
 	 message[cursor++] = temperature;
 
-	 humidity = hts221.readHumidity() * 100;
+	 humidity = humiditySensor.readHumidity() * 100;
 	 DEBUG_STREAM.println(humidity);
 	 message[cursor++] = humidity >> 8;
 	 message[cursor++] = humidity;
