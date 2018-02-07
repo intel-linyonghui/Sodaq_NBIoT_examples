@@ -11,7 +11,7 @@
 
 #include <Wire.h>
 #include <Sodaq_nbIOT.h>
-#include "Sodaq_LPS22HB.h"
+#include <Sodaq_LPS22HB.h>
 
 #if defined(ARDUINO_AVR_LEONARDO)
 #define DEBUG_STREAM Serial 
@@ -30,13 +30,15 @@
 #endif
 
 Sodaq_nbIOT nbiot;
-Sodaq_LPS22HB lps22hb;
+Sodaq_LPS22HB barometricSensor;
 
 void setup()
 {
   while ((!DEBUG_STREAM) && (millis() < 10000)) {
     // Wait for serial monitor for 10 seconds
   }
+
+  Wire.begin();
    
 	DEBUG_STREAM.begin(9600);
   MODEM_STREAM.begin(nbiot.getDefaultBaudrate());
@@ -53,19 +55,21 @@ void setup()
       DEBUG_STREAM.println("Failed to connect!");
   }
 	
-	lps22hb.begin(0x5D);	// 
+	if (barometricSensor.init()) {
+        DEBUG_STREAM.println("Barometric sensor initialization succeeded!");
+        barometricSensor.enableSensor(Sodaq_LPS22HB::OdrOneShot);
+  }
+  else {
+      DEBUG_STREAM.println("Barometric sensor initialization failed!");
+  }
 
-	if (lps22hb.whoAmI() == false)
-	{
-		DEBUG_STREAM.println("Error while retrieving WHO_AM_I byte...");
-		while (1);
-	}
+  DEBUG_STREAM.println("Done with setup!");
 }
 
 void loop()
 {
   // Create the message
-  String message = String(lps22hb.readPressure()) + " mbar";
+  String message = String(barometricSensor.readPressureHPA()) + " mbar";
 
   // Print the message we want to send
   DEBUG_STREAM.println(message);
