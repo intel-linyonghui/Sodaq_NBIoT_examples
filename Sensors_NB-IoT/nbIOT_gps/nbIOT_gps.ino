@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <Sodaq_nbIOT.h>
-#include "Sodaq_UBlox_GPS.h"
+#include <Sodaq_UBlox_GPS.h>
 
 #if defined(ARDUINO_AVR_LEONARDO)
 #define DEBUG_STREAM Serial 
@@ -15,7 +15,7 @@
 #define MODEM_STREAM Serial1
 
 #else
-#error "Please select a Sodaq ExpLoRer, Arduino Leonardo or add your board."
+#error "Please select one of the listed boards."
 #endif
 
 #define ARRAY_DIM(arr)  (sizeof(arr) / sizeof(arr[0]))
@@ -26,24 +26,24 @@ Sodaq_nbIOT nbiot;
 // to measure how long it takes to get a fix.
 uint32_t intervals[] = {
 
-        // Do a few tests with 1 minute delay
-        1UL * 60 * 1000,
-        1UL * 60 * 1000,
-        1UL * 60 * 1000,
+    // Do a few tests with 1 minute delay
+    1UL * 60 * 1000,
+    1UL * 60 * 1000,
+    1UL * 60 * 1000,
 
-        // Try a few longer delays
-        2UL * 60 * 1000,
-        2UL * 60 * 1000,
-        5UL * 60 * 1000,
-        5UL * 60 * 1000,
+    // Try a few longer delays
+    2UL * 60 * 1000,
+    2UL * 60 * 1000,
+    5UL * 60 * 1000,
+    5UL * 60 * 1000,
 
-        // Slowly increase the delays
-        15UL * 60 * 1000,
-        30UL * 60 * 1000,
-        1UL * 60 * 60 * 1000,
-        3UL * 60 * 60 * 1000,
-        4UL * 60 * 60 * 1000,
-        8UL * 60 * 60 * 1000,
+    // Slowly increase the delays
+    15UL * 60 * 1000,
+    30UL * 60 * 1000,
+    1UL * 60 * 60 * 1000,
+    3UL * 60 * 60 * 1000,
+    4UL * 60 * 60 * 1000,
+    8UL * 60 * 60 * 1000,
 };
 size_t interval_ix = 0;
 
@@ -52,9 +52,9 @@ void do_flash_led(int pin);
 
 void setup()
 {
-   while ((!DEBUG_STREAM) && (millis() < 10000)) {
-     // Wait for serial monitor for 10 seconds
-   }
+    while ((!DEBUG_STREAM) && (millis() < 10000)) {
+        // Wait for serial monitor for 10 seconds
+    }
 
     DEBUG_STREAM.begin(57600);
     MODEM_STREAM.begin(nbiot.getDefaultBaudrate());
@@ -117,20 +117,21 @@ void find_fix(uint32_t delay_until)
     uint32_t timeout = 900L * 1000;
     DEBUG_STREAM.println(String("waiting for fix ..., timeout=") + timeout + String("ms"));
     if (sodaq_gps.scan(false, timeout)) {
-      String message = "";
-        message +=(String(" time to find fix: ") + (millis() - start) + String("ms"));
-        message +=(String(" datetime = ") + sodaq_gps.getDateTimeString());
-        message +=(String(" lat = ") + String(sodaq_gps.getLat(), 7));
-        message +=(String(" lon = ") + String(sodaq_gps.getLon(), 7));
-        message +=(String(" num sats = ") + String(sodaq_gps.getNumberOfSatellites()));
+        String message = "";
+        message += (String(" time to find fix: ") + (millis() - start) + String("ms"));
+        message += (String(" datetime = ") + sodaq_gps.getDateTimeString());
+        message += (String(" lat = ") + String(sodaq_gps.getLat(), 7));
+        message += (String(" lon = ") + String(sodaq_gps.getLon(), 7));
+        message += (String(" num sats = ") + String(sodaq_gps.getNumberOfSatellites()));
 
         if (!nbiot.sendMessage(message)) {
-          DEBUG_STREAM.println("Could not queue message!");
+            DEBUG_STREAM.println("Could not queue message!");
         }
-    } else {
+    }
+    else {
         DEBUG_STREAM.println("No Fix");
         if (!nbiot.sendMessage("No Fix")) {
-          DEBUG_STREAM.println("Could not queue message!");
+            DEBUG_STREAM.println("Could not queue message!");
         }
     }
 }
