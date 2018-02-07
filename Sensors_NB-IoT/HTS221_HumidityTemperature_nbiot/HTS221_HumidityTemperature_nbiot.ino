@@ -12,7 +12,7 @@
 #include <Wire.h>
 // #include <SoftwareSerial.h> // Uno
 #include <Sodaq_nbIOT.h>
-#include "Sodaq_HTS221.h"
+#include <Sodaq_HTS221.h>
 
 #if defined(ARDUINO_AVR_LEONARDO)
 #define DEBUG_STREAM Serial 
@@ -37,12 +37,15 @@ SoftwareSerial softSerial(10, 11); // RX, TX
 #endif
 
 Sodaq_nbIOT nbiot;
+Sodaq_HTS221 humiditySensor;
 
 void setup() 
 {
   while ((!DEBUG_STREAM) && (millis() < 10000)) {
     // Wait for serial monitor for 10 seconds
   }
+
+  Wire.begin();
   
   DEBUG_STREAM.begin(9600);
   MODEM_STREAM.begin(nbiot.getDefaultBaudrate());
@@ -59,22 +62,23 @@ void setup()
   }
   else {
       DEBUG_STREAM.println("Failed to connect!");
-      return;
   }
 
-	if (hts221.begin() == false) 
-	{
-		DEBUG_STREAM.println("Error while retrieving WHO_AM_I byte...");
-			while (1);
-	}
+	if (humiditySensor.init()) {
+        DEBUG_STREAM.println("Temperature + humidity sensor initialized.");
+        humiditySensor.enableSensor();
+    }
+    else {
+        DEBUG_STREAM.println("Temperature + humidity initialization failed!");
+    }
 }
 
 
 void loop() 
 {
   // Create the message
-  String message = String(hts221.readTemperature()) + "C"+
-                    ",  " + String(hts221.readHumidity()) + "%";
+  String message = String(humiditySensor.readTemperature()) + "C"+
+                    ",  " + String(humiditySensor.readHumidity()) + "%";
 
   // Print the message we want to send
   DEBUG_STREAM.println(message);
